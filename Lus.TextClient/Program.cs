@@ -46,7 +46,7 @@ namespace Lus.TextClient
                     if (Matrix.Items[i, j] == 0)
                     {
                         Driver.SetAttribute(new Terminal.Gui.Attribute(Color.DarkGray, Color.Black));
-                        Driver.AddStr(".");
+                        Driver.AddStr("░");
                     }
                     else if (Matrix.Items[i, j] == 1)
                     {
@@ -165,16 +165,26 @@ namespace Lus.TextClient
                     if (Matrix.Items[i, j] == 0)
                     {
                         Driver.SetAttribute(new Terminal.Gui.Attribute(Color.DarkGray, Color.Black));
-                        Driver.AddStr(".");
+                        Driver.AddStr("?");
                     }
                     else if (Matrix.Items[i, j] == 1)
                     {
-                        Driver.SetAttribute(new Terminal.Gui.Attribute(Color.BrightBlue, Color.Black));
-                        Driver.AddStr("@");
+                        Driver.SetAttribute(new Terminal.Gui.Attribute(Color.DarkGray, Color.Black));
+                        Driver.AddStr("𓆭");
                     }
                     else if (Matrix.Items[i, j] == 2)
                     {
-                        Driver.SetAttribute(new Terminal.Gui.Attribute(Color.BrightRed, Color.Black));
+                        Driver.SetAttribute(new Terminal.Gui.Attribute(Color.Gray, Color.Black));
+                        Driver.AddStr("∎");
+                    }
+                    else if (Matrix.Items[i, j] == 3)
+                    {
+                        Driver.SetAttribute(new Terminal.Gui.Attribute(Color.Brown, Color.Black));
+                        Driver.AddStr("_");
+                    }
+                    else if (Matrix.Items[i, j] == 4)
+                    {
+                        Driver.SetAttribute(new Terminal.Gui.Attribute(Color.BrightBlue, Color.Black));
                         Driver.AddStr("@");
                     }
                 }
@@ -345,6 +355,7 @@ namespace Lus.TextClient
     internal class GlobeScreenHandler : IScreenHandler
     {
         private GameState _gameState;
+        private Label _unitGroupLabel;
 
         public Task<GameScreen> StartProcessingAsync(GameState gameState)
         {
@@ -357,7 +368,24 @@ namespace Lus.TextClient
 
             var addUnitButton = new Button(1, 3, "Recruit");
 
-            top.Add(battleButton, addUnitButton);
+            _unitGroupLabel = new Label(20, 3, $"Fighters: {_gameState.SelectedUnitGroup.Units.Count}");
+
+            var globeViewer = new GlobeViewer(1, 5);
+
+            var matrix = new Matrix { Items = new int[40, 40] };
+
+            for (var i = 0; i < 10; i++)
+            {
+                for (var j = 0; j < 10; j++)
+                {
+                    matrix.Items[i, j] = (int)(gameState.Globe.Terrain[i, j].Type + 1);
+                }
+            }
+
+            globeViewer.Matrix = matrix;
+
+
+            top.Add(globeViewer, battleButton, addUnitButton, _unitGroupLabel);
 
             battleButton.Clicked += Button_Clicked;
             addUnitButton.Clicked += AddUnitButton_Clicked;
@@ -377,6 +405,8 @@ namespace Lus.TextClient
             };
 
             _gameState.SelectedUnitGroup.Units.Add(unitStat);
+
+            _unitGroupLabel.Text = $"Fighters: {_gameState.SelectedUnitGroup.Units.Count}";
         }
 
         private void Button_Clicked()
