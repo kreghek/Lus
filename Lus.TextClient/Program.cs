@@ -212,6 +212,10 @@ namespace Lus.TextClient
         }
 
         public List<UnitStat> Units { get; }
+
+        public int X { get; set; }
+
+        public int Y { get; set; }
     }
 
     sealed class Terrain
@@ -327,11 +331,11 @@ namespace Lus.TextClient
             {
                 for (var j = 0; j < globeSize; j++)
                 {
-                    globe.Terrain[i, j] = new Terrain { Type = (TerrainType)((i * j * 7) % 3) };
+                    globe.Terrain[i, j] = new Terrain { Type = (TerrainType)((i * j * 11) % 3) };
                 }
             }
 
-            var unitGroup = new UnitGroup();
+            var unitGroup = new UnitGroup() { X = 5, Y = 5 };
             for (var i = 0; i < 10; i++)
             {
                 var unitStat = new UnitStat()
@@ -378,9 +382,11 @@ namespace Lus.TextClient
             {
                 for (var j = 0; j < 10; j++)
                 {
-                    matrix.Items[i, j] = (int)(gameState.Globe.Terrain[i, j].Type + 1);
+                    matrix.Items[i, j] = (int)(gameState.Globe.Terrain[i, j].Type) + 1;
                 }
             }
+
+            matrix.Items[gameState.SelectedUnitGroup.X, gameState.SelectedUnitGroup.Y] = 4;
 
             globeViewer.Matrix = matrix;
 
@@ -417,16 +423,25 @@ namespace Lus.TextClient
 
     internal class BattleScreenHandler : IScreenHandler
     {
+        private List<Unit> _units;
+        private GameState _gameState;
+
         public Task<GameScreen> StartProcessingAsync(GameState gameState)
         {
+            _gameState = gameState;
+
             Application.Init();
             var top = Application.Top;
 
             var box = new BattlefieldViewer(0, 0);
 
-            top.Add(box);
+            var quitButton = new Button(41, 1, "Ends");
 
-            var units = new List<Unit>();
+            quitButton.Clicked += QuitButton_Clicked;
+
+            top.Add(box, quitButton);
+
+            _units = new List<Unit>();
 
             var matrixSize = 40;
             var unitMatrix = new Unit[matrixSize, matrixSize];
@@ -444,7 +459,7 @@ namespace Lus.TextClient
                     Y = i / 10,
                 };
                 unitMatrix[unit.X, unit.Y] = unit;
-                units.Add(unit);
+                _units.Add(unit);
             }
 
             for (var i = 0; i < 10; i++)
@@ -464,7 +479,7 @@ namespace Lus.TextClient
                     Y = matrixSize - 1
                 };
                 unitMatrix[i, matrixSize - 1] = unit;
-                units.Add(unit);
+                _units.Add(unit);
             }
 
             Task.Run(async () => {
@@ -475,12 +490,12 @@ namespace Lus.TextClient
                     var delayTask = Task.Delay(1000);
                     var calculationTask = Task.Run(() => {
 
-                        foreach (var unit in units)
+                        foreach (var unit in _units)
                         {
                             unit.WasBeAttacked = false;
                         }
 
-                        var orderedUnits = units.OrderBy(x => Guid.NewGuid()).ToArray();
+                        var orderedUnits = _units.OrderBy(x => Guid.NewGuid()).ToArray();
 
                         foreach (var unit in orderedUnits)
                         {
@@ -526,7 +541,7 @@ namespace Lus.TextClient
                                     targetUnit.WasBeAttacked = true;
                                     if (targetUnit.CurrentHp <= 0)
                                     {
-                                        units.Remove(targetUnit);
+                                        _units.Remove(targetUnit);
                                         unitMatrix[unit.X, unit.Y] = null;
                                         unitMatrix[targetUnit.X, targetUnit.Y] = unit;
                                         unit.X = targetX;
@@ -578,6 +593,19 @@ namespace Lus.TextClient
             Application.Run();
 
             return Task.FromResult(GameScreen.Globe);
+        }
+
+        private void QuitButton_Clicked()
+        {
+            var alivePlayerUnits = _units.Where(x => x.Stat.Hp > 0 && x.Stat.Team == "1").Select(x => x.Stat);
+            var deadUnitsFromState = _gameState.SelectedUnitGroup.Units.Except(alivePlayerUnits).ToArray();
+
+            foreach (var unit in deadUnitsFromState)
+            {
+                _gameState.SelectedUnitGroup.Units.Remove(unit);
+            }
+
+            Application.RequestStop();
         }
     }
 }
