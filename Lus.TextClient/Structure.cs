@@ -8,6 +8,7 @@ namespace Lus.TextClient
         public StructureScheme()
         {
             RequiredStructures = new HashSet<string>();
+            Production = new HashSet<Production>();
         }
 
         public string Sid { get; set; }
@@ -16,6 +17,7 @@ namespace Lus.TextClient
         public int Cost { get; set; }
         public IReadOnlySet<string> RequiredStructures { get; set; }
 
+        public IReadOnlySet<Production> Production { get; set; }
 
         public override string ToString()
         {
@@ -48,8 +50,28 @@ namespace Lus.TextClient
 
         private static IEnumerable<StructureScheme> Initialize()
         {
-            yield return new StructureScheme { Name = "Settlers Camp", Cost = 1000, Sid = "settlers-camp" };
-            yield return new StructureScheme { Name = "Ore Mine", Cost = 5, Sid = "ore-mine", RequiredStructures = new HashSet<string> { "settlers-camp" } };
+            yield return new StructureScheme
+            {
+                Name = "Settlers Camp",
+                Cost = 1000,
+                Sid = "settlers-camp",
+                Production = new HashSet<Production> {
+                    new Production{ Terrain = TerrainType.Fields, Resource = ResourceType.Money, Count= 1 },
+                    new Production{ Terrain = TerrainType.Lumber, Resource = ResourceType.Money, Count= 1 },
+                    new Production{ Terrain = TerrainType.Rocks, Resource = ResourceType.Money, Count= 1 },
+                }
+            };
+
+            yield return new StructureScheme
+            {
+                Name = "Ore Mine",
+                Cost = 5,
+                Sid = "ore-mine",
+                RequiredStructures = new HashSet<string> { "settlers-camp" },
+                Production = new HashSet<Production> {
+                    new Production{ Terrain = TerrainType.Rocks, Resource = ResourceType.Money, Count= 5 },
+                }
+            };
         }
 
         public static IEnumerable<StructureScheme> All => _all;

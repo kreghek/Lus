@@ -10,6 +10,7 @@ namespace Lus.TextClient
         private GameState _gameState;
         private Label _unitGroupLabel;
         private Label _globeCellDecriptionLabel;
+        private Label _resourcesLabel;
 
         public Task<GameScreen> StartProcessingAsync(GameState gameState)
         {
@@ -27,7 +28,7 @@ namespace Lus.TextClient
                 new MenuBarItem ("_Current Group", new MenuItem [] {
                     new MenuItem ("_Build...", "", () => {
 
-                        var list = Structures.All.ToArray();
+                        var list = GetAvailableStructuresList(gameState);
                         var buildingList = new ListView(list){ X = 0, Y = 0, Width = 50, Height = 15};
                         var errorLabel = new Label(0, 16, string.Empty);
 
@@ -62,6 +63,10 @@ namespace Lus.TextClient
 
                                 gameState.Globe.Structures.Add(building);
 
+                                gameState.Money-=selectedBuilding.Cost;
+
+                                _resourcesLabel.Text = $"${gameState.Money}";
+
                                 Application.RequestStop ();
                             }
                             else
@@ -88,17 +93,18 @@ namespace Lus.TextClient
 
             var addUnitButton = new Button(1, 3, "Recruit");
 
-            _unitGroupLabel = new Label(20, 3, $"Fighters: {_gameState.SelectedUnitGroup.Units.Count}");
+            _unitGroupLabel = new Label(20, 1, $"Fighters: {_gameState.SelectedUnitGroup.Units.Count}");
+            _resourcesLabel = new Label(20, 2, "$1000");
 
             var cellInfo = gameState.Globe.Terrain[gameState.SelectedUnitGroup.X, gameState.SelectedUnitGroup.Y].Type;
-            _globeCellDecriptionLabel = new Label(20, 5, $"Location: {cellInfo}");
+            _globeCellDecriptionLabel = new Label(20, 3, $"Location: {cellInfo}");
 
             var globeViewer = new GlobeViewer(1, 5);
             globeViewer.SetFocus();
 
             RedrawGlobe(gameState, globeViewer);
 
-            top.Add(globeViewer, battleButton, addUnitButton, _unitGroupLabel, _globeCellDecriptionLabel, menu);
+            top.Add(globeViewer, battleButton, addUnitButton, _unitGroupLabel, _globeCellDecriptionLabel, menu, _resourcesLabel);
 
             battleButton.Clicked += Button_Clicked;
             addUnitButton.Clicked += AddUnitButton_Clicked;
@@ -131,6 +137,17 @@ namespace Lus.TextClient
             Application.Run();
 
             return Task.FromResult(GameScreen.Battle);
+        }
+
+        private static StructureScheme[] GetAvailableStructuresList(GameState gameState)
+        {
+            return Structures.All.Where(x=>CheckRequiredStructures(x, gameState)).ToArray();
+        }
+
+        private static bool CheckRequiredStructures(StructureScheme targetStructure, GameState gameState)
+        {
+            var allPlayerStructuresSids = gameState.Globe.Structures.Select(x => x.Scheme.Sid).Distinct().ToArray();
+            return !targetStructure.RequiredStructures.Except(allPlayerStructuresSids).Any();
         }
 
         private static void RedrawGlobe(GameState gameState, GlobeViewer globeViewer)

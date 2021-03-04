@@ -7,6 +7,7 @@
 
     enum ResourceType
     {
+        Money,
         Energy,
         Manufactoring,
         Food

@@ -14,6 +14,6 @@
 
         public UnitGroup SelectedUnitGroup { get; set; }
 
-        public int Money { get; set; } = 20;
+        public int Money { get; set; } = 1000;
     }
 }
