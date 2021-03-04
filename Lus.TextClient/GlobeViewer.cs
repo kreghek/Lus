@@ -1,6 +1,4 @@
-﻿using System;
-
-using Terminal.Gui;
+﻿using Terminal.Gui;
 
 namespace Lus.TextClient
 {
@@ -9,20 +7,14 @@ namespace Lus.TextClient
         int w = 40;
         int h = 40;
 
-        public bool WantCursorPosition { get; set; } = false;
-
         public GlobeViewer(int x, int y) : base(new Rect(x, y, 40, 40))
         {
+            CanFocus = true;
         }
 
         public Size GetContentSize()
         {
             return new Size(w, h);
-        }
-
-        public void SetCursorPosition(Point pos)
-        {
-            throw new NotImplementedException();
         }
 
         public Matrix Matrix { get; set; }
@@ -42,33 +34,33 @@ namespace Lus.TextClient
 
                     if (Matrix.Items[i, j] == 0)
                     {
-                        Driver.SetAttribute(new Terminal.Gui.Attribute(Color.DarkGray, Color.Black));
+                        Driver.SetAttribute(new Attribute(Color.DarkGray, Color.Black));
                         Driver.AddStr("?");
                     }
                     else if (Matrix.Items[i, j] == 1)
                     {
-                        Driver.SetAttribute(new Terminal.Gui.Attribute(Color.Green, Color.Black));
+                        Driver.SetAttribute(new Attribute(Color.Green, Color.Black));
                         Driver.AddStr("Y");
                     }
                     else if (Matrix.Items[i, j] == 2)
                     {
-                        Driver.SetAttribute(new Terminal.Gui.Attribute(Color.Gray, Color.Black));
+                        Driver.SetAttribute(new Attribute(Color.Gray, Color.Black));
                         Driver.AddStr("0");
                     }
                     else if (Matrix.Items[i, j] == 3)
                     {
-                        Driver.SetAttribute(new Terminal.Gui.Attribute(Color.Brown, Color.Black));
+                        Driver.SetAttribute(new Attribute(Color.Brown, Color.Black));
                         Driver.AddStr("_");
                     }
                     else if (Matrix.Items[i, j] == 4)
                     {
-                        Driver.SetAttribute(new Terminal.Gui.Attribute(Color.BrightBlue, Color.Black));
+                        Driver.SetAttribute(new Attribute(Color.BrightBlue, Color.Black));
                         Driver.AddStr("@");
                     }
                     else if (Matrix.Items[i, j] == 5)
                     {
-                        Driver.SetAttribute(new Terminal.Gui.Attribute(Color.Blue, Color.Black));
-                        Driver.AddStr("S");
+                        Driver.SetAttribute(new Attribute(Color.BrightBlue, Color.Black));
+                        Driver.AddStr("░");
                     }
                 }
             }

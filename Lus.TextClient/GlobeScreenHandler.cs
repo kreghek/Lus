@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 
 using Terminal.Gui;
 
@@ -25,15 +26,49 @@ namespace Lus.TextClient
                 }),
                 new MenuBarItem ("_Current Group", new MenuItem [] {
                     new MenuItem ("_Build...", "", () => {
-                        var okButton = new Button ("Ok", is_default: true);
-                        okButton.Clicked += () => {
-                            var building = new Structure(){
-                                Name = "Settlers Camp",
-                                X = gameState.SelectedUnitGroup.X,
-                                Y = gameState.SelectedUnitGroup.Y
-                            };
 
-                            gameState.Globe.Structures.Add(building);
+                        var list = Structures.All.ToArray();
+                        var buildingList = new ListView(list){ X = 0, Y = 0, Width = 50, Height = 15};
+                        var errorLabel = new Label(0, 16, string.Empty);
+
+                        var okButton = new Button ("Ok", is_default: true);
+
+                        buildingList.SelectedItemChanged += (e) =>
+                        {
+                            var structure = e.Value as StructureScheme;
+                            if (structure.Cost <= gameState.Money)
+                            {
+                                errorLabel.Text = string.Empty;
+                                Application.Refresh();
+                            }
+                            else
+                            {
+                                errorLabel.Text = "Has not enought Money.";
+                                Application.Refresh();
+                            }
+                        };
+
+                        okButton.Clicked += () => {
+
+                            var selectedBuilding = list[buildingList.SelectedItem];
+
+                            if (selectedBuilding.Cost <= gameState.Money)
+                            {
+                                var building = new Structure(){
+                                    Scheme = selectedBuilding,
+                                    X = gameState.SelectedUnitGroup.X,
+                                    Y = gameState.SelectedUnitGroup.Y
+                                };
+
+                                gameState.Globe.Structures.Add(building);
+
+                                Application.RequestStop ();
+                            }
+                            else
+                            {
+                                errorLabel.Text = "Has not enought Money.";
+                                Application.Refresh();
+                            }
                         };
                         var cancelButton = new Button ("Cancel");
                         cancelButton.Clicked += () => { Application.RequestStop (); };
@@ -43,9 +78,8 @@ namespace Lus.TextClient
                             okButton,
                             cancelButton);
 
-                        var ml2 = new Label (1, 1, "Mouse Debug Line");
-                        d.Add (ml2);
-                        Application.Run (d);
+                        d.Add(buildingList, errorLabel);
+                        Application.Run(d);
                     })
                 }),
             });
@@ -60,19 +94,11 @@ namespace Lus.TextClient
             _globeCellDecriptionLabel = new Label(20, 5, $"Location: {cellInfo}");
 
             var globeViewer = new GlobeViewer(1, 5);
+            globeViewer.SetFocus();
 
             RedrawGlobe(gameState, globeViewer);
 
-            var moveButton = new Button(20, 5, "Test Move");
-
-            moveButton.Clicked += () =>
-            {
-                gameState.SelectedUnitGroup.X--;
-                RedrawGlobe(gameState, globeViewer);
-                Application.Refresh();
-            };
-
-            top.Add(globeViewer, battleButton, addUnitButton, _unitGroupLabel, _globeCellDecriptionLabel, menu, moveButton);
+            top.Add(globeViewer, battleButton, addUnitButton, _unitGroupLabel, _globeCellDecriptionLabel, menu);
 
             battleButton.Clicked += Button_Clicked;
             addUnitButton.Clicked += AddUnitButton_Clicked;
@@ -81,9 +107,25 @@ namespace Lus.TextClient
             {
                 if (e.KeyEvent.Key == Key.CursorRight)
                 {
-                    gameState.SelectedUnitGroup.X--;
-                    Application.Refresh();
+                    gameState.SelectedUnitGroup.X++;
                 }
+                else if (e.KeyEvent.Key == Key.CursorLeft)
+                {
+                    gameState.SelectedUnitGroup.X--;
+                }
+                else if (e.KeyEvent.Key == Key.CursorUp)
+                {
+                    gameState.SelectedUnitGroup.Y--;
+                }
+                else if (e.KeyEvent.Key == Key.CursorDown)
+                {
+                    gameState.SelectedUnitGroup.Y++;
+                }
+
+                RedrawGlobe(gameState, globeViewer);
+                Application.Refresh();
+
+                e.Handled = true;
             };
 
             Application.Run();

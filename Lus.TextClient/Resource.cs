@@ -4,4 +4,11 @@
     { 
 
     }
+
+    enum ResourceType
+    {
+        Energy,
+        Manufactoring,
+        Food
+    }
 }

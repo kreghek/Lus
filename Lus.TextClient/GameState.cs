@@ -13,5 +13,7 @@
         public Globe Globe { get; set; }
 
         public UnitGroup SelectedUnitGroup { get; set; }
+
+        public int Money { get; set; } = 20;
     }
 }
