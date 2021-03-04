@@ -7,10 +7,13 @@ namespace Lus.TextClient
         public Globe()
         {
             UnitGroups = new List<UnitGroup>();
+            Structures = new List<Structure>();
         }
 
         public List<UnitGroup> UnitGroups { get; }
 
         public Terrain[,] Terrain { get; set; }
+
+        public List<Structure> Structures { get; }
     }
 }

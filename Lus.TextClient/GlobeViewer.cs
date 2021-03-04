@@ -65,6 +65,11 @@ namespace Lus.TextClient
                         Driver.SetAttribute(new Terminal.Gui.Attribute(Color.BrightBlue, Color.Black));
                         Driver.AddStr("@");
                     }
+                    else if (Matrix.Items[i, j] == 5)
+                    {
+                        Driver.SetAttribute(new Terminal.Gui.Attribute(Color.Blue, Color.Black));
+                        Driver.AddStr("S");
+                    }
                 }
             }
         }
