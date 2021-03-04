@@ -47,13 +47,13 @@ namespace Lus.TextClient
                     }
                     else if (Matrix.Items[i, j] == 1)
                     {
-                        Driver.SetAttribute(new Terminal.Gui.Attribute(Color.DarkGray, Color.Black));
-                        Driver.AddStr("𓆭");
+                        Driver.SetAttribute(new Terminal.Gui.Attribute(Color.Green, Color.Black));
+                        Driver.AddStr("Y");
                     }
                     else if (Matrix.Items[i, j] == 2)
                     {
                         Driver.SetAttribute(new Terminal.Gui.Attribute(Color.Gray, Color.Black));
-                        Driver.AddStr("∎");
+                        Driver.AddStr("0");
                     }
                     else if (Matrix.Items[i, j] == 3)
                     {

@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Terminal.Gui;
 
@@ -38,7 +37,6 @@ namespace Lus.TextClient
             matrix.Items[gameState.SelectedUnitGroup.X, gameState.SelectedUnitGroup.Y] = 4;
 
             globeViewer.Matrix = matrix;
-
 
             top.Add(globeViewer, battleButton, addUnitButton, _unitGroupLabel);
 
