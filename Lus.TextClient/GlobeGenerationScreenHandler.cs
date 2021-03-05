@@ -59,6 +59,7 @@ namespace Lus.TextClient
 
             _gameState.Globe = globe;
             _gameState.SelectedUnitGroup = unitGroup;
+            _gameState.Globe.UnitGroups.Add(unitGroup);
 
             Application.RequestStop();
         }

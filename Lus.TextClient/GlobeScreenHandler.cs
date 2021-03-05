@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Terminal.Gui;
@@ -11,6 +12,7 @@ namespace Lus.TextClient
         private Label _unitGroupLabel;
         private Label _globeCellDecriptionLabel;
         private Label _resourcesLabel;
+        private Label _timeLabel;
 
         public Task<GameScreen> StartProcessingAsync(GameState gameState)
         {
@@ -37,7 +39,7 @@ namespace Lus.TextClient
                         buildingList.SelectedItemChanged += (e) =>
                         {
                             var structure = e.Value as StructureScheme;
-                            if (structure.Cost <= gameState.Money)
+                            if (structure.Cost <= gameState.Resources[ResourceType.Money])
                             {
                                 errorLabel.Text = string.Empty;
                                 Application.Refresh();
@@ -53,7 +55,7 @@ namespace Lus.TextClient
 
                             var selectedBuilding = list[buildingList.SelectedItem];
 
-                            if (selectedBuilding.Cost <= gameState.Money)
+                            if (selectedBuilding.Cost <= gameState.Resources[ResourceType.Money])
                             {
                                 var building = new Structure(){
                                     Scheme = selectedBuilding,
@@ -63,9 +65,9 @@ namespace Lus.TextClient
 
                                 gameState.Globe.Structures.Add(building);
 
-                                gameState.Money-=selectedBuilding.Cost;
+                                gameState.Resources[ResourceType.Money]-=selectedBuilding.Cost;
 
-                                _resourcesLabel.Text = $"${gameState.Money}";
+                                UpdateResourceLabel();
 
                                 Application.RequestStop ();
                             }
@@ -89,12 +91,13 @@ namespace Lus.TextClient
                 }),
             });
 
-            var battleButton = new Button(1, 1, "Battle!");
+            var battleButton = new Button(1, 1, "Next day!");
+            _timeLabel = new Label(1, 2, "1 day of Spring, 1 year");
 
             var addUnitButton = new Button(1, 3, "Recruit");
 
             _unitGroupLabel = new Label(20, 1, $"Fighters: {_gameState.SelectedUnitGroup.Units.Count}");
-            _resourcesLabel = new Label(20, 2, "$1000");
+            _resourcesLabel = new Label(20, 2, "$1000 E1000 T1000 F1000");
 
             var cellInfo = gameState.Globe.Terrain[gameState.SelectedUnitGroup.X, gameState.SelectedUnitGroup.Y].Type;
             _globeCellDecriptionLabel = new Label(20, 3, $"Location: {cellInfo}");
@@ -106,7 +109,7 @@ namespace Lus.TextClient
 
             top.Add(globeViewer, battleButton, addUnitButton, _unitGroupLabel, _globeCellDecriptionLabel, menu, _resourcesLabel);
 
-            battleButton.Clicked += Button_Clicked;
+            battleButton.Clicked += ()=> { CalculateNextDay(gameState); UpdateResourceLabel(); };
             addUnitButton.Clicked += AddUnitButton_Clicked;
 
             globeViewer.KeyPress += (e) =>
@@ -134,9 +137,75 @@ namespace Lus.TextClient
                 e.Handled = true;
             };
 
+            UpdateResourceLabel();
+
             Application.Run();
 
             return Task.FromResult(GameScreen.Battle);
+        }
+
+        private static void CalculateNextDay(GameState gameState)
+        {
+            foreach (var structure in gameState.Globe.Structures)
+            {
+                if (HasWorkingPlayerGroup(structure, gameState.Globe.UnitGroups))
+                {
+                    var connectedTerrains = GetConnectedTerrains(structure, gameState.Globe.Terrain).ToList();
+
+                    foreach (var production in structure.Scheme.Production)
+                    {
+                        var terrainsOfType = connectedTerrains.Where(x => x.Type == production.Terrain);
+                        if (terrainsOfType.Any())
+                        {
+                            gameState.Resources[production.Resource] += production.Count * terrainsOfType.Count();
+                        }
+                    }
+                }
+            }
+        }
+
+        private static IEnumerable<Terrain> GetConnectedTerrains(Structure structure, Terrain[,] terrain)
+        {
+            for (var i = -1; i <= 1; i++)
+            {
+                for (var j = -1; j <= 1; j++)
+                {
+                    var targetX = structure.X + i;
+                    var targetY = structure.Y + j;
+
+                    if (targetX < 0)
+                    {
+                        continue;
+                    }
+
+                    if (targetY < 0)
+                    {
+                        continue;
+                    }
+
+                    if (targetX >= terrain.GetUpperBound(0))
+                    {
+                        continue;
+                    }
+
+                    if (targetY >= terrain.GetUpperBound(1))
+                    {
+                        continue;
+                    }
+
+                    if (i == 0 && j == 0)
+                    {
+                        continue;
+                    }
+
+                    yield return terrain[structure.X + i, structure.Y + j];
+                }
+            }
+        }
+
+        private static bool HasWorkingPlayerGroup(Structure structure, List<UnitGroup> unitGroups)
+        {
+            return unitGroups.Where(x => x.X == structure.X && x.Y == structure.Y).Sum(x => x.Units.Count()) > 0;
         }
 
         private static StructureScheme[] GetAvailableStructuresList(GameState gameState)
@@ -186,9 +255,12 @@ namespace Lus.TextClient
             _unitGroupLabel.Text = $"Fighters: {_gameState.SelectedUnitGroup.Units.Count}";
         }
 
-        private void Button_Clicked()
+        private void UpdateResourceLabel()
         {
-            Application.RequestStop();
+            _resourcesLabel.Text = $"${_gameState.Resources[ResourceType.Money]}" + " "
+                + $"E{_gameState.Resources[ResourceType.Energy]}" + " "
+                + $"T{_gameState.Resources[ResourceType.Manufactoring]}" + " "
+                + $"F{_gameState.Resources[ResourceType.Food]}";
         }
     }
 }
