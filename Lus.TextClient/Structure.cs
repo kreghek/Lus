@@ -55,9 +55,10 @@ namespace Lus.TextClient
                 Name = "Settlers Camp",
                 Cost = 1000,
                 Sid = "settlers-camp",
-                Production = new HashSet<Production> {
-                    new Production{ Terrain = TerrainType.Fields, Resource = ResourceType.Money, Count= 1 },
-                    new Production{ Terrain = TerrainType.Lumber, Resource = ResourceType.Money, Count= 1 },
+                Production = new HashSet<Production> 
+                {
+                    new Production{ Terrain = TerrainType.Fields, Resource = ResourceType.Food, Count= 1 },
+                    new Production{ Terrain = TerrainType.Lumber, Resource = ResourceType.Manufactoring, Count= 1 },
                     new Production{ Terrain = TerrainType.Rocks, Resource = ResourceType.Money, Count= 1 },
                 }
             };
@@ -69,7 +70,29 @@ namespace Lus.TextClient
                 Sid = "ore-mine",
                 RequiredStructures = new HashSet<string> { "settlers-camp" },
                 Production = new HashSet<Production> {
-                    new Production{ Terrain = TerrainType.Rocks, Resource = ResourceType.Money, Count= 5 },
+                    new Production{ Terrain = TerrainType.Rocks, Resource = ResourceType.Manufactoring, Count= 1 },
+                }
+            };
+
+            yield return new StructureScheme
+            {
+                Name = "Farm",
+                Cost = 5,
+                Sid = "farm",
+                RequiredStructures = new HashSet<string> { "settlers-camp" },
+                Production = new HashSet<Production> {
+                    new Production{ Terrain = TerrainType.Fields, Resource = ResourceType.Food, Count= 1 },
+                }
+            };
+
+            yield return new StructureScheme
+            {
+                Name = "Sawmill",
+                Cost = 5,
+                Sid = "sawmill",
+                RequiredStructures = new HashSet<string> { "settlers-camp" },
+                Production = new HashSet<Production> {
+                    new Production{ Terrain = TerrainType.Lumber, Resource = ResourceType.Manufactoring, Count= 1 },
                 }
             };
         }

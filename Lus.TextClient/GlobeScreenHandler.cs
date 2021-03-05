@@ -87,14 +87,29 @@ namespace Lus.TextClient
 
                         d.Add(buildingList, errorLabel);
                         Application.Run(d);
+                    }),
+
+                    new MenuItem("_Recruit...", "", ()=>{
+
+                        if (gameState.Resources[ResourceType.Money] >= 1000 && gameState.Resources[ResourceType.Food] >= 1000)
+                        {
+                            var unitStat = new UnitStat()
+                            {
+                                Hp = 100,
+                                Damage = 30,
+                                Team = "1"
+                            };
+
+                            _gameState.SelectedUnitGroup.Units.Add(unitStat);
+
+                            _unitGroupLabel.Text = $"Fighters: {_gameState.SelectedUnitGroup.Units.Count}";
+                        }
                     })
                 }),
             });
 
             var battleButton = new Button(1, 1, "Next day!");
             _timeLabel = new Label(1, 2, "1 day of Spring, 1 year");
-
-            var addUnitButton = new Button(1, 3, "Recruit");
 
             _unitGroupLabel = new Label(20, 1, $"Fighters: {_gameState.SelectedUnitGroup.Units.Count}");
             _resourcesLabel = new Label(20, 2, "$1000 E1000 T1000 F1000");
@@ -107,10 +122,9 @@ namespace Lus.TextClient
 
             RedrawGlobe(gameState, globeViewer);
 
-            top.Add(globeViewer, battleButton, addUnitButton, _unitGroupLabel, _globeCellDecriptionLabel, menu, _resourcesLabel);
+            top.Add(globeViewer, battleButton, _unitGroupLabel, _globeCellDecriptionLabel, menu, _resourcesLabel);
 
             battleButton.Clicked += ()=> { CalculateNextDay(gameState); UpdateResourceLabel(); };
-            addUnitButton.Clicked += AddUnitButton_Clicked;
 
             globeViewer.KeyPress += (e) =>
             {
